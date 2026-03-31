@@ -119,20 +119,21 @@
 
         // Prétraiter l'image du canvas
         function preprocessCanvas() {
-            // Redimensionner le canvas en 28x28 (l'entrée attendue par le modèle)
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = 28;
             tempCanvas.height = 28;
             const tempCtx = tempCanvas.getContext('2d');
             tempCtx.drawImage(canvas, 0, 0, 28, 28);
-            // Obtenir les pixels
             const imageData = tempCtx.getImageData(0, 0, 28, 28);
             let pixels = [];
             for (let i = 0; i < imageData.data.length; i += 4) {
-                // Convertir en niveaux de gris et normaliser entre 0 et 1
                 let gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / (3 * 255);
                 pixels.push(gray);
             }
+            // Changement ici : plus de dimension canal
+            const tensor = tf.tensor(pixels, [1, 28, 28]);
+            return tensor;
+        }
             // Convertir en tensor avec la forme [1, 28, 28, 1] (batch, hauteur, largeur, canal)
             const tensor = tf.tensor(pixels, [1, 28, 28, 1]);
             return tensor;
