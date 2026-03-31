@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Chatbot IA (local)</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 { color: #333; }
+        #chat {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .message {
+            margin: 8px 0;
+        }
+        .user {
+            text-align: right;
+            color: blue;
+        }
+        .bot {
+            text-align: left;
+            color: green;
+        }
+        .loader {
+            color: gray;
+            font-style: italic;
+        }
+        .error {
+            color: red;
+        }
+        input, button {
+            padding: 8px;
+            font-size: 16px;
+        }
+        input {
+            width: 70%;
+        }
+        button {
+            width: 25%;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:disabled {
+            background: #aaa;
+        }
+    </style>
+    <!-- Chargement de Transformers.js (bibliothèque pour les modèles locaux) -->
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js"></script>
+</head>
+<body>
+    <h1>💬 Chatbot IA (local, gratuit)</h1>
+    <div id="chat">
+        <div class="message bot">🤖 Bonjour ! Je suis un chatbot local. Je charge le modèle... Patientez quelques secondes.</div>
+    </div>
+    <input type="text" id="userInput" placeholder="Pose ta question...">
+    <button id="sendBtn" disabled>Envoyer</button>
+
+    <script>
+        // Variables globales
+        let generator = null;
+        let modelReady = false;
+        const chatDiv = document.getElementById('chat');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        // Fonction pour ajouter un message dans le chat
+        function addMessage(text, isUser = false) {
+            const div = document.createElement('div');
+            div.className = `message ${isUser ? 'user' : 'bot'}`;
+            div.innerHTML = `<strong>${isUser ? 'Toi' : 'Bot'} :</strong> ${text}`;
+            chatDiv.appendChild(div);
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+
+        // Charger le modèle DistilGPT-2 (82M paramètres) avec Transformers.js
+        async function loadModel() {
+            try {
+                addMessage('⏳ Téléchargement du modèle IA (environ 300 Mo)… Cela ne se fait qu’une fois. Patientez.', false);
+                // Le pipeline 'text-generation' charge automatiquement le modèle "Xenova/distilgpt2"
+                generator = await transformers.pipeline('text-generation', 'Xenova/distilgpt2');
+                modelReady = true;
+                sendBtn.disabled = false;
+                addMessage('✅ Modèle chargé ! Posez vos questions.', false);
+            } catch (err) {
+                console.error(err);
+                addMessage(`❌ Erreur de chargement : ${err.message}. Vérifie ta connexion.`, false);
+            }
+        }
+
+        // Générer une réponse à partir du texte saisi
+        async function generateResponse(prompt) {
+            if (!modelReady) {
+                addMessage("Le modèle n'est pas encore prêt. Réessaie dans quelques secondes.", false);
+                return;
+            }
+
+            addMessage('🤔 Réflexion en cours...', false);
+            try {
+                // Le modèle génère la suite du texte à partir du prompt
+                const result = await generator(prompt, {
+                    max_new_tokens: 80,      // longueur maximale de la réponse
+                    temperature: 0.7,        // créativité (0 = strict, 1 = créatif)
+                    do_sample: true,
+                });
+                // La réponse contient le prompt + la suite. On extrait la partie générée.
+                const fullText = result[0].generated_text;
+                const botReply = fullText.slice(prompt.length).trim() || "Je n'ai pas de réponse.";
+                addMessage(botReply, false);
+            } catch (err) {
+                console.error(err);
+                addMessage("Désolé, une erreur s'est produite.", false);
+            }
+        }
+
+        // Gérer l'envoi du message
+        function onSend() {
+            const text = userInput.value.trim();
+            if (!text) return;
+            addMessage(text, true);
+            userInput.value = '';
+            generateResponse(text);
+        }
+
+        // Événements
+        sendBtn.addEventListener('click', onSend);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') onSend();
+        });
+
+        // Lancer le chargement du modèle au démarrage
+        loadModel();
+    </script>
+</body>
+</html>
