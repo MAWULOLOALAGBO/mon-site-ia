@@ -131,7 +131,7 @@
                 pixels.push(gray);
             }
             // Changement ici : plus de dimension canal
-            const tensor = tf.tensor(pixels, [1, 28, 28]);
+            const tensor = tf.tensor(pixels, [-1, 28, 28]);
             return tensor;
         }
 
