@@ -133,7 +133,7 @@
             // Afficher quelques stats
             console.log('Moyenne des pixels :', pixels.reduce((a,b)=>a+b,0)/pixels.length);
             console.log('Min:', Math.min(...pixels), 'Max:', Math.max(...pixels));
-            const tensor = tf.tensor(pixels, [-1, 28, 28]);
+            const tensor = tf.tensor(pixels, [1, 28, 28]);
             return tensor;
         }
 
