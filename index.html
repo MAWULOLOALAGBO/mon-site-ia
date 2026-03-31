@@ -134,10 +134,6 @@
             const tensor = tf.tensor(pixels, [1, 28, 28]);
             return tensor;
         }
-            // Convertir en tensor avec la forme [1, 28, 28, 1] (batch, hauteur, largeur, canal)
-            const tensor = tf.tensor(pixels, [1, 28, 28, 1]);
-            return tensor;
-        }
 
         predictBtn.addEventListener('click', async () => {
             if (!model) {
